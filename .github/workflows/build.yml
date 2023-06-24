@@ -29,24 +29,18 @@ jobs:
           script: |
             let matrix = {};
             matrix.arch = ["arm64", "x86_64"]
-            matrix.androidv = [13]
             core.setOutput("matrix", JSON.stringify(matrix));
 
   build:
-    name: Build MindTheGapps ${{ matrix.androidv }} ${{ matrix.arch }}
+    name: Build MindTheGapps v13.0 ${{ matrix.arch }}
     runs-on: ubuntu-22.04
     needs: matrix
     strategy:
       matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
     steps:
 
-      - name: Map Android Version to tree
-        run: |
-          echo "ANDROIDV=tau" >> $GITHUB_ENV
-          echo "ANDROID_API=33" >> $GITHUB_ENV
-
       - name: Clone repository
-        run: git clone --depth=1 -b ${{ env.ANDROIDV }} https://gitlab.com/MindTheGapps/vendor_gapps.git/
+        run: git clone --depth=1 -b tau https://gitlab.com/MindTheGapps/vendor_gapps.git/
 
       - name: Build
         working-directory: vendor_gapps
@@ -61,7 +55,7 @@ jobs:
             find overlay -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d '' dir
             do
                 echo "Building ${dir/overlay\//}"
-                aapt package -M "$dir"/AndroidManifest.xml -S "$dir"/res/ -I /usr/local/lib/android/sdk/platforms/android-${{ env.ANDROID_API }}/android.jar -F "${dir/overlay\//}".apk.u
+                aapt package -M "$dir"/AndroidManifest.xml -S "$dir"/res/ -I /usr/local/lib/android/sdk/platforms/android-33/android.jar -F "${dir/overlay\//}".apk.u
                 zipalign -v 4 "${dir/overlay\//}".apk.u "${dir/overlay\//}".apk.s
                 java -jar build/sign/signapk.jar build/sign/testkey.x509.pem build/sign/testkey.pk8 "${dir/overlay\//}".apk.s "${dir/overlay\//}".apk
             done
