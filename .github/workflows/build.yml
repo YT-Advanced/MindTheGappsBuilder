@@ -62,7 +62,7 @@ jobs:
       - name: Generate file tree
         working-directory: vendor_gapps/out
         run: |
-         unzip *.zip "./ExtractFolder/"
+         unzip *.zip -d "./ExtractFolder/"
          tree -d "./ExtractFolder/"
       
       - name: Release
