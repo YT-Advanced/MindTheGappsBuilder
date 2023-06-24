@@ -2,17 +2,6 @@ name: Build MindTheGapps
 
 on:
   workflow_dispatch:
-    inputs:
-      release:
-        description: "Release"
-        required: true
-        default: false
-        type: boolean
-      old:
-        description: "Build removed versions"
-        required: true
-        default: false
-        type: boolean
 
 jobs:
   matrix:
@@ -21,7 +10,6 @@ jobs:
     outputs:
       matrix: ${{ steps.setup.outputs.matrix }}
     steps:
-
       - name: Generate build matrix
         id: setup
         uses: actions/github-script@v6
@@ -68,10 +56,7 @@ jobs:
   
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: github.event.inputs.release == 'true'
         with:
           tag_name: ${{ env.date }}
-          draft: true
-          prerelease: false
           files: |
             vendor_gapps/out/*
