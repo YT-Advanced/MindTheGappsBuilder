@@ -28,17 +28,13 @@ jobs:
         with:
           script: |
             let matrix = {};
-            if ('${{ github.event.inputs.old }}' === 'true') {
-                matrix.androidv = ["5.1", "7.1.1", "7.1.2", "8.1", 9, 10, 11, "12.1", 13]
-            } else {
-                matrix.androidv = [9, 10, 11, "12.1", 13]
-            }
-            matrix.arch = ["arm", "arm64", "x86", "x86_64"]
+            matrix.arch = ["arm64", "x86_64"]
+            matrix.androidv = [13]
             core.setOutput("matrix", JSON.stringify(matrix));
 
   build:
-    name: Build ${{ matrix.androidv }}-${{ matrix.arch }}
-    runs-on: ubuntu-20.04
+    name: Build MindTheGapps ${{ matrix.androidv }} ${{ matrix.arch }}
+    runs-on: ubuntu-22.04
     needs: matrix
     strategy:
       matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
@@ -46,31 +42,16 @@ jobs:
 
       - name: Map Android Version to tree
         run: |
-          declare -A ANDROID_VER_MAP=([9]="pi" [10]="qoppa" [11]="rho" ["12.1"]="sigma" [13]="tau")
-          echo "ANDROIDV=${ANDROID_VER_MAP[${{ matrix.androidv }}]}" >> $GITHUB_ENV
-          declare -A ANDROID_API_MAP=([9]=28 [10]=29 [11]=30 ["12.1"]=32 [13]=33)
-          echo "ANDROID_API=${ANDROID_API_MAP[${{ matrix.androidv }}]}" >> $GITHUB_ENV
-          declare -A GITLAB_COMMIT_MAP=(["5.1"]="c62430937b1d63e3d8bb358a85ba90fed12a5a13" ["7.1.1"]="d5900b28910a85599694f23411e9f883546ae220" ["7.1.2"]="5af93c969f7135a63c7933b8ca3d658f7c79bad3" ["8.1"]="0f6b4560288267b644c49de0fdc538fa30980708")
-          echo "GITLAB_COMMIT=${GITLAB_COMMIT_MAP[${{ matrix.androidv }}]}" >> $GITHUB_ENV
+          echo "ANDROIDV=tau" >> $GITHUB_ENV
+          echo "ANDROID_API=33" >> $GITHUB_ENV
 
       - name: Clone repository
-        run: |
-          if [ "${{ matrix.androidv }}" = "5.1" ] || [ "${{ matrix.androidv }}" = "7.1.1" ] || [ "${{ matrix.androidv }}" = "7.1.2" ] || [ "${{ matrix.androidv }}" = "8.1" ]; then
-              mkdir vendor_gapps
-              cd vendor_gapps
-              git init
-              git remote add origin https://gitlab.com/MindTheGapps/vendor_gapps.git/ -t pi
-              git fetch origin ${{ env.GITLAB_COMMIT }} --depth=1
-              git reset --hard FETCH_HEAD
-          else
-              git clone --depth=1 -b ${{ env.ANDROIDV }} https://gitlab.com/MindTheGapps/vendor_gapps.git/
-          fi
+        run: git clone --depth=1 -b ${{ env.ANDROIDV }} https://gitlab.com/MindTheGapps/vendor_gapps.git/
 
       - name: Build
         working-directory: vendor_gapps
         continue-on-error: true
         run: |
-          if [ ! "${{ matrix.androidv }}" = "12.1" ] && [ ! "${{ matrix.androidv }}" = "13" ] && [ "${{ matrix.arch }}" = "x86_64" ]; then exit 64; fi
           if [ -d overlay ]; then
             sudo apt-get install -y aapt zipalign
             mkdir -p common/proprietary/product/overlay
@@ -87,25 +68,10 @@ jobs:
             mv -v *.apk common/proprietary/product/overlay
           fi
           sed -i -e 's/_%H%M%S//' build/gapps.sh
-          if [ "${{ github.event.inputs.old }}" = "true" ]; then
-              sed -i -e 's/%F-%H-%M/%Y%m%d/g' build/gapps.sh
-              if [ "${{ matrix.androidv }}" = "5.1" ] || [ "${{ matrix.androidv }}" = "7.1.1" ]; then
-                  sed -i -e 's/\.md5/\.md5sum/g' build/gapps.sh
-                  sed -i -e 's/gapps-/MindTheGapps-/g' build/gapps.sh
-              fi
-          fi
           echo "date=$(date -u +%Y%m%d)" >> $GITHUB_ENV
           bash build/gapps.sh ${{ matrix.arch }}
           sed -i -e 's/\ .*//' out/*.md5sum
-
-      - name: Upload
-        if: github.event.inputs.release != 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: Built_MindTheGapps-${{ matrix.androidv }}-${{ matrix.arch }}-${{ env.date }}
-          path: vendor_gapps/out/*
-          if-no-files-found: ignore
-
+  
       - name: Release
         uses: softprops/action-gh-release@v1
         if: github.event.inputs.release == 'true'
@@ -115,22 +81,3 @@ jobs:
           prerelease: false
           files: |
             vendor_gapps/out/*
-
-      - name: Setup SSH
-        if: github.event.inputs.release == 'true'
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
-          echo ${{ secrets.SSH_KEY }} > ~/.ssh/id_ed25519
-          chmod 0600 ~/.ssh/id_ed25519
-          ssh -T ${{ vars.SF_USER }}@frs.sourceforge.net
-
-      - name: Upload to SourceForge
-        continue-on-error: true
-        if: github.event.inputs.release == 'true'
-        working-directory: vendor_gapps/out
-        run: |
-          mkdir ${{ matrix.arch }}
-          mkdir ${{ matrix.arch }}/${{ env.date }}
-          mv *.* ${{ matrix.arch }}/${{ env.date }}
-          rsync -avP -e ssh ${{ matrix.arch }} ${{ vars.SF_USER }}@frs.sourceforge.net:/home/frs/project/wsa-mtg/
