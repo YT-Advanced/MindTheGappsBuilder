@@ -56,11 +56,13 @@ jobs:
         working-directory: vendor_gapps/out
         run: |
          zip -d *.zip "system/addon.d/*" "system/product/app/*Exchange*/*" "system/product/app/*CalendarSync*" "system/product/etc/default-permissions/*mtg*" "system/product/etc/permissions/*dialer*" "system/product/etc/sysconfig/*build*" "system/product/framework/*" "system/product/lib*/*" "system/product/priv-app/AndroidAuto*/*" "system/system_ext/priv-app/SetupWizard/*"
-         zip -a *.zip "../../common/gapps/product/overlay/GoogleWebViewOverlay.apk"
+         zip -g *.zip "../../common/gapps/product/overlay/GoogleWebViewOverlay.apk"
       
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v0.1.15
         with:
           tag_name: ${{ env.date }}
+          fail_on_unmatched_files: true
           files: |
             vendor_gapps/out/*
+          body: Updated on ${{ env.date }}
