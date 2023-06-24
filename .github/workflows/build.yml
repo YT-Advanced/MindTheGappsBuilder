@@ -32,7 +32,6 @@ jobs:
 
       - name: Build
         working-directory: vendor_gapps
-        continue-on-error: true
         run: |
           if [ -d overlay ]; then
             sudo apt-get install -y aapt zipalign
@@ -52,8 +51,13 @@ jobs:
           sed -i -e 's/_%H%M%S//' build/gapps.sh
           echo "date=$(date -u +%Y%m%d)" >> $GITHUB_ENV
           bash build/gapps.sh ${{ matrix.arch }}
-          sed -i -e 's/\ .*//' out/*.md5sum
-  
+          
+      - name: Some minor fixes
+        working-directory: vendor_gapps/out
+        run: |
+         zip -d *.zip "system/addon.d/*" "system/product/app/*Exchange*/*" "system/product/app/*CalendarSync*" "system/product/etc/default-permissions/*mtg*" "system/product/etc/permissions/*dialer*" "system/product/etc/sysconfig/*build*" "system/product/framework/*" "system/product/lib*/*" "system/product/priv-app/AndroidAuto*/*" "system/system_ext/priv-app/SetupWizard/*"
+         zip -a *.zip "../../common/gapps/product/overlay/GoogleWebViewOverlay.apk"
+      
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
