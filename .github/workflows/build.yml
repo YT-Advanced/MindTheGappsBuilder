@@ -54,10 +54,9 @@ jobs:
           bash build/gapps.sh ${{ matrix.arch }}
           
       - name: Some minor fixes
-        working-directory: vendor_gapps/out
         run: |
-         zip -d *.zip "system/addon.d/*" "system/product/app/*Exchange*/*" "system/product/app/*CalendarSync*" "system/product/etc/default-permissions/*mtg*" "system/product/etc/permissions/*dialer*" "system/product/etc/sysconfig/*build*" "system/product/framework/*" "system/product/lib*/*" "system/product/priv-app/AndroidAuto*/*" "system/system_ext/priv-app/SetupWizard/*"
-         zip -g *.zip "../../system/product/overlay/GoogleWebViewOverlay.apk"
+         zip -d "./vendor_gapps/out/*.zip" "system/addon.d/*" "system/product/app/*Exchange*/*" "system/product/app/*CalendarSync*" "system/product/etc/default-permissions/*mtg*" "system/product/etc/permissions/*dialer*" "system/product/etc/sysconfig/*build*" "system/product/framework/*" "system/product/lib*/*" "system/product/priv-app/AndroidAuto*/*" "system/system_ext/priv-app/SetupWizard/*"
+         zip -g "./vendor_gapps/out/*.zip" "system/product/overlay/GoogleWebViewOverlay.apk"
       
       - name: Release
         uses: softprops/action-gh-release@v0.1.15
@@ -65,5 +64,5 @@ jobs:
           tag_name: ${{ env.date }}
           fail_on_unmatched_files: true
           files: |
-            vendor_gapps/out/*
+            vendor_gapps/out/*.zip
           body: Updated on ${{ env.date }}
