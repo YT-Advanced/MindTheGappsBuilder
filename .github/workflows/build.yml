@@ -58,7 +58,7 @@ jobs:
       - name: Some minor fixes
         run: |
          zip ./vendor_gapps/out/*.zip -d "system/addon.d/*" "system/product/app/*Exchange*/*" "system/product/app/*CalendarSync*" "system/product/etc/default-permissions/*mtg*" "system/product/etc/permissions/*dialer*" "system/product/etc/sysconfig/*build*" "system/product/framework/*" "system/product/lib*/*" "system/product/priv-app/AndroidAuto*/*" "system/system_ext/priv-app/SetupWizard/*" "system/system_ext/priv-app/GoogleFeedBack/*"
-         zip ./vendor_gapps/out/*.zip -g "system/product/*"
+         zip ./vendor_gapps/out/*.zip -u "system/product/*"
          
       - name: Release
         uses: softprops/action-gh-release@v0.1.15
