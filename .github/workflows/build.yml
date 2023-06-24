@@ -26,6 +26,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
     steps:
+      - uses: actions/checkout@v3
 
       - name: Clone repository
         run: git clone --depth=1 -b tau https://gitlab.com/MindTheGapps/vendor_gapps.git/
