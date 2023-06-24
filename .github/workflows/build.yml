@@ -56,7 +56,13 @@ jobs:
         working-directory: vendor_gapps/out
         run: |
          zip -d *.zip "system/addon.d/*" "system/product/app/*Exchange*/*" "system/product/app/*CalendarSync*" "system/product/etc/default-permissions/*mtg*" "system/product/etc/permissions/*dialer*" "system/product/etc/sysconfig/*build*" "system/product/framework/*" "system/product/lib*/*" "system/product/priv-app/AndroidAuto*/*" "system/system_ext/priv-app/SetupWizard/*"
-         zip -g *.zip "../../common/gapps/product/overlay/GoogleWebViewOverlay.apk"
+         zip -g *.zip "../../system/product/overlay/GoogleWebViewOverlay.apk"
+      
+      - name: Generate file tree
+        working-directory: vendor_gapps/out
+        run: |
+         unzip *.zip "ExtractFolder"
+         tree -d "./ExtractFolder"
       
       - name: Release
         uses: softprops/action-gh-release@v0.1.15
