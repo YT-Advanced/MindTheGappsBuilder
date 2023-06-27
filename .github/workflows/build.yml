@@ -2,12 +2,6 @@ name: Build MindTheGapps
 
 on:
   workflow_dispatch:
-    inputs:
-      release:
-        description: "Release"
-        required: true
-        default: false
-        type: boolean
 
 jobs:
   matrix:
@@ -16,40 +10,30 @@ jobs:
     outputs:
       matrix: ${{ steps.setup.outputs.matrix }}
     steps:
-
       - name: Generate build matrix
         id: setup
         uses: actions/github-script@v6
         with:
           script: |
             let matrix = {};
-            matrix.androidv = ["9.0.0", "10.0.0", "11.0.0", "12.1.0", "13.0.0"]
-            matrix.arch = ["arm", "arm64", "x86", "x86_64"]
+            matrix.arch = ["arm64", "x86_64"]
             core.setOutput("matrix", JSON.stringify(matrix));
 
   build:
-    name: Build ${{ matrix.androidv }}-${{ matrix.arch }}
+    name: Build MindTheGapps v13.0 ${{ matrix.arch }}
     runs-on: ubuntu-latest
     needs: matrix
     strategy:
       matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
     steps:
-
-      - name: Map Android Version to tree
-        run: |
-          declare -A ANDROID_VER_MAP=(["9.0.0"]="pi" ["10.0.0"]="qoppa" ["11.0.0"]="rho" ["12.1.0"]="sigma" ["13.0.0"]="tau")
-          echo "ANDROIDV=${ANDROID_VER_MAP[${{ matrix.androidv }}]}" >> $GITHUB_ENV
-          declare -A ANDROID_API_MAP=(["12.1.0"]=32 ["13.0.0"]=33)
-          echo "ANDROID_API=${ANDROID_API_MAP[${{ matrix.androidv }}]}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
 
       - name: Clone repository
-        run: git clone --depth=1 -b ${{ env.ANDROIDV }} https://gitlab.com/MindTheGapps/vendor_gapps.git/
+        run: git clone --depth=1 -b tau https://gitlab.com/MindTheGapps/vendor_gapps.git/
 
       - name: Build
         working-directory: vendor_gapps
-        continue-on-error: true
         run: |
-          if [[ ! -d overlay && ${{ matrix.arch }} == x86_64 ]]; then exit 64; fi
           if [ -d overlay ]; then
             sudo apt-get update
             sudo apt-get install -y aapt zipalign
@@ -69,40 +53,19 @@ jobs:
           sed -i -e 's/_%H%M%S//' build/gapps.sh
           echo "date=$(date -u +%Y%m%d)" >> $GITHUB_ENV
           ./build/gapps.sh ${{ matrix.arch }}
-          sed -i -e 's@/home/runner/work/MindTheGappsBuilder/MindTheGappsBuilder/vendor_gapps/out/@@' out/MindTheGapps-${{ matrix.androidv }}-${{ matrix.arch }}-$(date -u +%Y%m%d).zip.md5sum
-
-      - name: Upload
-        if: github.event.inputs.release != 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: Built_MindTheGapps-${{ matrix.androidv }}-${{ matrix.arch }}-${{ env.date }}
-          path: vendor_gapps/out/*
-          if-no-files-found: warn
-
-      - name: Setup SSH
-        if: github.event.inputs.release == 'true'
+          
+      - name: Some minor fixes
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
-          echo ${{ secrets.SSH_KEY }} > ~/.ssh/id_ed25519
-          chmod 0600 ~/.ssh/id_ed25519
-          ssh -T ${{ vars.SF_USER }}@frs.sourceforge.net
-
-      - name: Upload to SourceForge
-        continue-on-error: true
-        if: github.event.inputs.release == 'true'
-        working-directory: vendor_gapps/out
-        run: |
-          mkdir ${{ matrix.arch }}
-          mkdir ${{ matrix.arch }}/${{ env.date }}
-          mv *.* ${{ matrix.arch }}/${{ env.date }}
-          rsync -avP -e ssh ${{ matrix.arch }} ${{ vars.SF_USER }}@frs.sourceforge.net:/home/frs/project/wsa-mtg/
-
+         zip ./vendor_gapps/out/*.zip -d "system/addon.d/*" "system/product/app/*Exchange*/*" "system/product/app/*CalendarSync*" "system/product/etc/default-permissions/*mtg*" "system/product/etc/permissions/*dialer*" "system/product/etc/sysconfig/*build*" "system/product/framework/*" "system/product/lib*/*" "system/product/priv-app/AndroidAuto*/*" "system/system_ext/priv-app/SetupWizard/*" "system/system_ext/priv-app/GoogleFeedback/*"
+         zip ./vendor_gapps/out/*.zip -g "system/product/overlay/GoogleWebViewOverlay.apk"
+         zip ./vendor_gapps/out/*.zip -g "system/product/etc/default-permissions/default-permissions-google-core.xml"
+         zip ./vendor_gapps/out/*.zip -g "system/product/etc/sysconfig/component-overrides.xml"
+         
       - name: Release
-        uses: softprops/action-gh-release@v1
-        if: github.event.inputs.release == 'true'
+        uses: softprops/action-gh-release@v0.1.15
         with:
           tag_name: ${{ env.date }}
-          draft: false
-          prerelease: false
-          files: vendor_gapps/out/*
+          fail_on_unmatched_files: true
+          files: |
+            vendor_gapps/out/*.zip
+          body: Updated on ${{ env.date }}
