@@ -31,7 +31,7 @@ rm -rfv product/etc/default-permissions/default-permissions-mtg.xml
 rm -rfv product/etc/permissions/com.google.android.dialer.support.xml
 rm -rfv product/etc/sysconfig/{d2d_cable_migration_feature,google_build}.xml
 rm -rfv product/priv-app/{AndroidAutoStub,GoogleRestore}
-rm -rfv system_ext/priv-app/GoogleFeedback/
+rm -rfv system_ext/priv-app/{GoogleFeedback,SetupWizard}/
 
 # Copy additional files
 echo -e "\nCopying fixing files..."
