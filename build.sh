@@ -37,15 +37,14 @@ rm -rfv system_ext/priv-app/GoogleFeedback/
 echo -e "\nCopying fixing files..."
 cd $TOP
 cd ../
-mv -fv system/* $CREATED
+cp -frav system/* $CREATED
 
 # Compress
 echo -e "\nCreating package..."
 cd $OUT/$GARCH
 find system -exec touch -amt 200901010000.00 {} \;
-zip $BUILDZIP -r system
+zip -r $OUT/$BUILDZIP system
 rm -rf system
-mv $BUILDZIP.zip $OUT
 cd $TOP
 
 echo -e "\nDone!"
