@@ -10,7 +10,7 @@ GARCH=$1
 OUT=$TOP/out
 COMMON=$TOP/common/proprietary
 PREBUILT=$TOP/$GARCH/proprietary
-BUILDZIP=MindTheGapps-$ANDROIDV-$GARCH-$DATE.Ip
+BUILDZIP=MindTheGapps-$ANDROIDV-$GARCH-$DATE.zip
 CREATED=$OUT/$GARCH/system
 
 # Copy files
