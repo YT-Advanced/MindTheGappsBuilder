@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Clone repository
-        run: git clone --depth=1 -b tau https://gitlab.com/MindTheGapps/vendor_gapps.git/
+        run: git clone -b tau https://gitlab.com/MindTheGapps/vendor_gapps.git/ --depth 1
 
       - name: Build
         working-directory: vendor_gapps
@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Built_WSA-${{ matrix.arch }}-${{ env.date }}
-          path: vendor_gapps/out/*
+          path: vendor_gapps/out/*.zip
           if-no-files-found: warn
 
       - name: Release
