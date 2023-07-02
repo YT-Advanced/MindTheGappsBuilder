@@ -2,12 +2,6 @@ name: Build MindTheGapps
 
 on:
   workflow_dispatch:
-    inputs:
-      test:
-        description: "Test mode"
-        required: true
-        default: false
-        type: boolean
 
 jobs:
   matrix:
@@ -45,17 +39,8 @@ jobs:
           cp -f ../build.sh build/gapps.sh
           ./build/gapps.sh ${{ matrix.arch }}
 
-      - name: Upload
-        if: github.event.inputs.test == 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: Built_WSA-${{ matrix.arch }}-${{ env.date }}
-          path: vendor_gapps/out/*.zip
-          if-no-files-found: warn
-
       - name: Release
         uses: softprops/action-gh-release@v0.1.15
-        if: github.event.inputs.test != 'true'
         with:
           tag_name: ${{ env.date }}
           fail_on_unmatched_files: true
