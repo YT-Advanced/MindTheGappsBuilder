@@ -10,12 +10,11 @@ GARCH=$1
 OUT=$TOP/out
 COMMON=$TOP/common/proprietary
 PREBUILT=$TOP/$GARCH/proprietary
-BUILDZIP=MindTheGapps-$ANDROIDV-$GARCH-$DATE
+BUILDZIP=MindTheGapps-$ANDROIDV-$GARCH-$DATE.Ip
 CREATED=$OUT/$GARCH/system
 
 # Copy files
 echo "Starting GApps compilation"
-echo "ARCH= $GARCH"
 mkdir $OUT
 mkdir -p $OUT/$GARCH
 mkdir -p $CREATED
