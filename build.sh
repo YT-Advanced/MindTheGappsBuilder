@@ -3,9 +3,6 @@
 # (c) Paul Keith, 2017
 # Released under GPL v2 License
 
-##
-# var
-#
 DATE=$(date -u +%Y%m%d)
 TOP=$(realpath .)
 ANDROIDV=13.0.0
@@ -40,7 +37,7 @@ rm -rfv system_ext/priv-app/GoogleFeedback/
 echo -e "\nCopying fixing files..."
 cd $TOP
 cd ../
-mv -fv system $CREATED
+mv -fv system/* $CREATED
 
 # Compress
 echo -e "\nCreating package..."
