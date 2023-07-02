@@ -48,6 +48,7 @@ cd $OUT/$GARCH
 find system -exec touch -amt 200901010000.00 {} \;
 zip $BUILDZIP -r system
 rm -rf system
+mv $BUILDZIP.zip $OUT
 cd $TOP
 
 echo -e "\nDone!"
