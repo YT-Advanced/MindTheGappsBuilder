@@ -20,52 +20,29 @@ jobs:
             core.setOutput("matrix", JSON.stringify(matrix));
 
   build:
-    name: Build MindTheGapps v13.0 ${{ matrix.arch }}
+    name: 13.0.0-${{ matrix.arch }}
     runs-on: ubuntu-latest
     needs: matrix
     strategy:
       matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Clone repository
-        run: git clone --depth=1 -b tau https://gitlab.com/MindTheGapps/vendor_gapps.git/
+        run: git clone -b tau https://gitlab.com/MindTheGapps/vendor_gapps.git/ --depth 1
 
       - name: Build
         working-directory: vendor_gapps
         run: |
-          if [ -d overlay ]; then
-            sudo apt-get update
-            sudo apt-get install -y aapt zipalign
-            mkdir common/proprietary/product/overlay
-            sed -i -e '/overlay/d' build/gapps.sh
-            sed -i -e '/RROs/d' build/gapps.sh
-            echo "Compiling RROs"
-            find overlay -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d '' dir
-            do
-                echo "Building ${dir/overlay\//}"
-                aapt package -M "$dir"/AndroidManifest.xml -S "$dir"/res/ -I /usr/local/lib/android/sdk/platforms/android-${{ env.ANDROID_API }}/android.jar -F "${dir/overlay\//}"-unaligned-unsigned.apk
-                zipalign -v 4 "${dir/overlay\//}"-unaligned-unsigned.apk "${dir/overlay\//}"-unsigned.apk
-                java -jar build/sign/signapk.jar build/sign/testkey.x509.pem build/sign/testkey.pk8 "${dir/overlay\//}"-unsigned.apk "${dir/overlay\//}".apk
-                mv -v "${dir/overlay\//}".apk common/proprietary/product/overlay
-            done
-          fi
-          sed -i -e 's/_%H%M%S//' build/gapps.sh
           echo "date=$(date -u +%Y%m%d)" >> $GITHUB_ENV
+          cp -f ../build.sh build/gapps.sh
           ./build/gapps.sh ${{ matrix.arch }}
-          
-      - name: Some minor fixes
-        run: |
-         zip ./vendor_gapps/out/*.zip -d "system/addon.d/*" "system/product/app/*Exchange*/*" "system/product/app/*CalendarSync*" "system/product/etc/default-permissions/*mtg*" "system/product/etc/permissions/*dialer*" "system/product/etc/sysconfig/*build*" "system/product/framework/*" "system/product/lib*/*" "system/product/priv-app/AndroidAuto*/*" "system/system_ext/priv-app/SetupWizard/*" "system/system_ext/priv-app/GoogleFeedback/*"
-         zip ./vendor_gapps/out/*.zip -g "system/product/overlay/GoogleWebViewOverlay.apk"
-         zip ./vendor_gapps/out/*.zip -g "system/product/etc/default-permissions/default-permissions-google-core.xml"
-         zip ./vendor_gapps/out/*.zip -g "system/product/etc/sysconfig/component-overrides.xml"
-         
+
       - name: Release
         uses: softprops/action-gh-release@v0.1.15
         with:
           tag_name: ${{ env.date }}
           fail_on_unmatched_files: true
-          files: |
-            vendor_gapps/out/*.zip
+          files: vendor_gapps/out/*.zip
           body: Updated on ${{ env.date }}
