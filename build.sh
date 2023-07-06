@@ -5,7 +5,7 @@
 
 DATE=$(date -u +%Y%m%d)
 TOP=$(realpath .)
-ANDROIDV=13.0.0
+ANDROIDV="13.0.0"
 GARCH=$1
 OUT=$TOP/out
 COMMON=$TOP/common/proprietary
@@ -25,7 +25,7 @@ cp -r $COMMON/* $CREATED
 # Remove files don't used with WSA
 echo -e "\nRemoving files..."
 cd $CREATED
-rm -rfv product/{app,framework,lib}/
+rm -rfv product/{app,framework,lib,lib64}/
 rm -rfv product/etc/default-permissions/default-permissions-mtg.xml
 rm -rfv product/etc/permissions/com.google.android.dialer.support.xml
 rm -rfv product/etc/sysconfig/{d2d_cable_migration_feature,google_build}.xml
