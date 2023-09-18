@@ -30,7 +30,7 @@
         <permission name="android.permission.RECEIVE_MMS" fixed="true"/>
         <permission name="android.permission.ACCESS_BACKGROUND_LOCATION" fixed="true"/>
         <permission name="android.permission.ACCESS_COARSE_LOCATION" fixed="true"/>
-        <permission name="android.permission.PROCESS_OUTGOING_LOCATION" fixed="true"/>
+        <permission name="android.permission.PROCESS_OUTGOING_CALL" fixed="true"/>
         <permission name="android.permission.SEND_SMS" fixed="true"/>
         <permission name="android.permission.BLUETOOTH_CONNECT" fixed="true"/>
         <permission name="android.permission.BLUETOOTH_SCAN" fixed="true"/>
@@ -66,6 +66,7 @@
         <permission name="android.permission.NEARBY_WIFI_DEVICES" fixed="true"/>
         <permission name="android.permission.READ_CALENDAR" fixed="true"/>
         <permission name="android.permission.READ_CALL_LOG" fixed="true"/>
+        <permission name="android.permission.READ_SMS" fixed="true"/>
         <permission name="android.permission.READ_PHONE_STATE" fixed="true"/>
         <permission name="android.permission.RECORD_AUDIO" fixed="true"/>
         <permission name="android.permission.SEND_SMS" fixed="true"/>
