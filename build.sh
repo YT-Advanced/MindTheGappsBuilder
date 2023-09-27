@@ -32,9 +32,21 @@ rm -rfv product/etc/sysconfig/{d2d_cable_migration_feature,google_build}.xml
 rm -rfv product/priv-app/{AndroidAutoStub,GoogleRestore,VelvetTitan}
 rm -rfv system_ext/priv-app/{GoogleFeedback,SetupWizard}/
 
+# Build overlays
+echo -e "\nCompiling RROs"
+cd $TOP
+mkdir common/proprietary/product/overlay
+ln -s build/sign/testkey.pk8 cert.pk8
+find overlay -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d '' dir; do
+  echo "Building ${dir/overlay\//}"
+  aapt p -M "$dir"/AndroidManifest.xml -S "$dir"/res/ -I /usr/local/lib/android/sdk/platforms/android-33/android.jar --min-sdk-version 33 --target-sdk-version 33 -F "${dir/overlay\//}".apk.u
+  zipalign 4 "${dir/overlay\//}".apk.u "${dir/overlay\//}".apk
+  apksigner sign --key cert.pk8 --cert build/sign/testkey.x509.pem "${dir/overlay\//}".apk
+  mv -v "${dir/overlay\//}".apk common/proprietary/product/overlay/
+done
+
 # Copy additional files
 echo -e "\nCopying fixing files..."
-cd $TOP
 cd ../
 cp -frav system/* $CREATED
 
